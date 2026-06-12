@@ -24,7 +24,7 @@
             border-radius: 32px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.03), 0 4px 8px rgba(0, 0, 0, 0.05);
         }
-        .question-panel, .result-panel { padding: 2rem 2rem 2.5rem; }
+        .question-panel, .result-panel { padding: 2rem 2.5rem; }
         .hero-title {
             font-size: 2.8rem;
             font-weight: 700;
@@ -155,7 +155,6 @@
     ];
     let answers = new Array(QUESTIONS.length).fill("");
     let currentIndex = 0;
-    let viewState = 'question';
     const appRoot = document.getElementById('app');
 
     function saveCurrentAnswer() {
@@ -249,4 +248,4 @@
         }
         renderQuestionPage();
         window.addEventListener('beforeunload', () => {
-            localStorag
+            localStorage.setItem('graduation_book_answers', 
