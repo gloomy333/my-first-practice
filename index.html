@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>毕业书 · 青春问答录</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #ffffff;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            color: #000000;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+        }
+        .book-container {
+            max-width: 750px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.03), 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .question-panel, .result-panel { padding: 2rem 2rem 2.5rem; }
+        .hero-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.5rem;
+            color: #000000;
+            border-left: 6px solid #000000;
+            padding-left: 1.2rem;
+        }
+        .sub {
+            color: #2c2c2c;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            margin-top: 0.5rem;
+            padding-left: 1.8rem;
+            opacity: 0.7;
+        }
+        .question-number {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            color: #3a3a3a;
+            margin-bottom: 0.5rem;
+        }
+        .question-text {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #000000;
+        }
+        .answer-area { margin-bottom: 2.5rem; }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #1f1f1f;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            background: #f9f9f9;
+            border: 1px solid #e2e2e2;
+            border-radius: 20px;
+            color: #000000;
+            outline: none;
+        }
+        input:focus, textarea:focus {
+            border-color: #000000;
+            background: #ffffff;
+        }
+        textarea { min-height: 90px; resize: vertical; }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        button {
+            background: #000000;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.8rem 1.6rem;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button.secondary {
+            background: #f0f0f0;
+            color: #1a1a1a;
+            border: 1px solid #ccc;
+        }
+        button:hover { background: #2c2c2c; transform: scale(0.98); }
+        .result-table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0 2rem;
+            border-radius: 24px;
+            border: 1px solid #ececec;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th {
+            text-align: left;
+            padding: 1rem;
+            background-color: #fafafa;
+            border-bottom: 1px solid #eaeaea;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            word-break: break-word;
+        }
+        .empty-answer { color: #8a8a8a; font-style: italic; }
+        .action-buttons { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+        .progress {
+            font-size: 0.8rem;
+            color: #4d4d4d;
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        footer { text-align: center; font-size: 0.7rem; margin-top: 2rem; color: #aaa; }
+        @media (max-width: 550px) {
+            .question-text { font-size: 1.4rem; }
+            .hero-title { font-size: 2.2rem; }
+            .question-panel, .result-panel { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="book-container" id="app"></div>
+<script>
+    const QUESTIONS = [
+        { id: 0, text: "你的名字" },
+        { id: 1, text: "你的生日" },
+        { id: 2, text: "你最想干什么" },
+        { id: 3, text: "你和谁玩的最好" },
+        { id: 4, text: "你将来想去哪里发展" },
+        { id: 5, text: "你对哪个老师最有好感" },
+        { id: 6, text: "你最想对好朋友说什么" },
+        { id: 7, text: "你最喜欢的学科" },
+        { id: 8, text: "你的人生格言" },
+        { id: 9, text: "你对班上哪个异性最有好感（仅仅是好感不要误解，可以选择回答你猜或者不告诉你或者没有或者名字）" }
+    ];
+    let answers = new Array(QUESTIONS.length).fill("");
+    let currentIndex = 0;
+    let viewState = 'question';
+    const appRoot = document.getElementById('app');
+
+    function saveCurrentAnswer() {
+        const inputElement = document.querySelector(`[data-qid="${currentIndex}"]`);
+        if (inputElement) answers[currentIndex] = inputElement.value.trim();
+    }
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function renderInputByQuestion(qid, currentAnswer) {
+        const val = escapeHtml(currentAnswer);
+        if (qid === 6) return `<textarea data-qid="${qid}" rows="3" placeholder="写下你想说的话...">${val}</textarea>`;
+        if (qid === 9) return `<input type="text" data-qid="${qid}" placeholder="你猜 / 不告诉你 / 没有 / 或者写名字" value="${val}">`;
+        return `<input type="text" data-qid="${qid}" placeholder="请输入你的回答" value="${val}">`;
+    }
+    function renderQuestionPage() {
+        const currentQ = QUESTIONS[currentIndex];
+        const isLast = currentIndex === QUESTIONS.length - 1;
+        const html = `
+            <div class="question-panel">
+                <div class="hero-title">毕业书</div>
+                <div class="sub">拾光留声 · 致少年</div>
+                <div class="progress">第 ${currentIndex+1} / ${QUESTIONS.length} 问</div>
+                <div class="question-number">问题 ${currentIndex+1}</div>
+                <div class="question-text">${escapeHtml(currentQ.text)}</div>
+                <div class="answer-area">
+                    <label>✍️ 你的回答</label>
+                    ${renderInputByQuestion(currentIndex, answers[currentIndex] || "")}
+                </div>
+                <div class="button-group">
+                    <button type="button" id="prevBtn" class="secondary" ${currentIndex===0 ? 'disabled style="opacity:0.4;"' : ''}>← 上一个问题</button>
+                    <button type="button" id="nextOrSubmitBtn">${isLast ? '📖 完成 & 生成毕业书' : '下一个问题 →'}</button>
+                </div>
+                <div class="action-buttons" style="margin-top:1rem; justify-content:flex-end;">
+                    <button type="button" id="viewResultBtn" class="secondary" style="background:#f5f5f5;">📋 直接查看结果表</button>
+                </div>
+                <footer>所有回答会自动保存</footer>
+            </div>
+        `;
+        appRoot.innerHTML = html;
+        const inputField = document.querySelector(`[data-qid="${currentIndex}"]`);
+        if (inputField) {
+            inputField.addEventListener('input', (e) => { answers[currentIndex] = e.target.value; });
+            inputField.addEventListener('blur', (e) => { answers[currentIndex] = e.target.value; });
+        }
+        document.getElementById('prevBtn')?.addEventListener('click', () => {
+            saveCurrentAnswer();
+            if(currentIndex > 0) currentIndex--;
+            renderQuestionPage();
+        });
+        document.getElementById('nextOrSubmitBtn')?.addEventListener('click', () => {
+            saveCurrentAnswer();
+            if(isLast) renderResultPage();
+            else { currentIndex++; renderQuestionPage(); }
+        });
+        document.getElementById('viewResultBtn')?.addEventListener('click', () => {
+            saveCurrentAnswer();
+            renderResultPage();
+        });
+    }
+    function renderResultPage() {
+        let rows = '';
+        for(let i=0; i<QUESTIONS.length; i++) {
+            let ans = answers[i] && answers[i].trim() !== '' ? escapeHtml(answers[i]) : '<span class="empty-answer">未作答</span>';
+            rows += `<tr><th style="width:35%">${escapeHtml(QUESTIONS[i].text)}</th><td>${ans}</td></tr>`;
+        }
+        const html = `
+            <div class="result-panel">
+                <div class="hero-title" style="border-left-color:#000;">毕业书</div>
+                <div class="sub">你的青春纪念册 · 答案一览</div>
+                <div class="result-table-wrapper"><table><tbody>${rows}</tbody></table></div>
+                <div class="action-buttons">
+                    <button id="backEditBtn" class="secondary">✏️ 返回修改答案</button>
+                    <button id="resetAllBtn" class="secondary" style="background:#f3f3f3;">🔄 清空所有回答</button>
+                </div>
+                <footer>每一份答案都是成长的注脚 · 毕业快乐</footer>
+            </div>
+        `;
+        appRoot.innerHTML = html;
+        document.getElementById('backEditBtn')?.addEventListener('click', () => { currentIndex=0; renderQuestionPage(); });
+        document.getElementById('resetAllBtn')?.addEventListener('click', () => { if(confirm('清空所有回答？')){ answers = new Array(QUESTIONS.length).fill(""); renderResultPage(); } });
+    }
+    (function init() {
+        const saved = localStorage.getItem('graduation_book_answers');
+        if(saved) {
+            try {
+                let p = JSON.parse(saved);
+                if(Array.isArray(p) && p.length === QUESTIONS.length) answers = p;
+            } catch(e) {}
+        }
+        renderQuestionPage();
+        window.addEventListener('beforeunload', () => {
+            localStorag
