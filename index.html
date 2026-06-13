@@ -2,18 +2,279 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <!-- 新增兼容&SEO补充meta，不影响原有功能 -->
+    <meta name="description" content="毕业书 · 青春问答录 填写回忆生成毕业纪念册">
+    <meta name="author" content="gloomy333">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>毕业书 · 青春问答录</title>
     <style>
-        body { text-align: center; padding-top: 100px; font-size: 24px; }
+        /* 原生全局重置 + 补齐浏览器兼容前缀，不改动原有逻辑 */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box; 
+        }
+        body {
+            background-color: #ffffff;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #000000;
+            min-height: 100vh;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            /* 柔和渐变背景升级，不破坏白底需求 */
+            background: linear-gradient(140deg, #ffffff 0%, #f7f8fa 100%);
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+        }
+        .book-container {
+            max-width: 750px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 30px rgba(0, 0, 0, 0.03), 0 4px 8px rgba(0, 0, 0, 0.05);
+            /* 页面入场动画 */
+            animation: containerFadeIn 0.8s ease-out;
+            overflow: hidden;
+        }
+        /* 全局动画定义 */
+        @keyframes containerFadeIn {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes btnPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.96); }
+            100% { transform: scale(1); }
+        }
+        @keyframes inputFocusGlow {
+            0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.15); }
+            70% { box-shadow: 0 0 0 6px rgba(0,0,0,0.08); }
+            100% { box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        }
+
+        .question-panel, .result-panel { 
+            padding: 2rem 2.5rem;
+            animation: containerFadeIn 0.5s ease-out;
+        }
+        .hero-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.5rem;
+            color: #000000;
+            border-left: 6px solid #000000;
+            padding-left: 1.2rem;
+            animation: containerFadeIn 1s ease-out;
+        }
+        sub {
+            display: block;
+            color: #2c2c2c;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.8rem;
+            opacity: 0.7;
+        }
+        .question-number {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            color: #3a3a3a;
+            margin-bottom: 0.5rem;
+        }
+        .question-text {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #000000;
+            line-height: 1.4;
+        }
+        .answer-area { margin-bottom: 2.5rem; }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #1f1f1f;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            background: #f9f9f9;
+            border: 1px solid #e2e2e2;
+            border-radius: 20px;
+            color: #000000;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: #000000;
+            background: #ffffff;
+            animation: inputFocusGlow 0.6s ease-out;
+        }
+        textarea { min-height: 90px; resize: vertical; }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        button {
+            background: #000000;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.8rem 1.6rem;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
+        }
+        button:hover { 
+            background: #2c2c2c; 
+            transform: scale(0.98); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        button:active {
+            animation: btnPress 0.3s ease-out;
+        }
+        button:disabled {
+            background: #ccc !important;
+            color: #666 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        button.secondary {
+            background: #f0f0f0;
+            color: #1a1a1a;
+            border: 1px solid #ccc;
+        }
+        button.secondary:hover {
+            background: #e5e5e5;
+            border-color: #bbb;
+        }
+        .result-table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0 2rem;
+            border-radius: 24px;
+            border: 1px solid #ececec;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th {
+            text-align: left;
+            padding: 1rem;
+            background-color: #fafafa;
+            border-bottom: 1px solid #eaeaea;
+            font-weight: 600;
+            color: #333;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            word-break: break-word;
+            color: #444;
+        }
+        tr:hover td {
+            background-color: #f9f9f9;
+        }
+        .empty-answer { color: #8a8a8a; font-style: italic; }
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .progress {
+            font-size: 0.8rem;
+            color: #4d4d4d;
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        footer { 
+            text-align: center; 
+            font-size: 0.7rem; 
+            margin-top: 2rem; 
+            color: #aaa;
+            animation: containerFadeIn 1.2s ease-out;
+        }
+        @media (max-width: 550px) {
+            .hero-title { font-size: 2.2rem; }
+            .question-panel, .result-panel { padding: 1.5rem; }
+            .button-group {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="test">测试页面加载成功</div>
+    <div class="book-container" id="app"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM加载完成，JS正常执行');
-            document.getElementById('test').innerText = '✅ GitHub部署&JS运行全部正常';
-        })
-    </script>
-</body>
-</html>
+        // 完全保留你原本的8道题目，一字未改
+        const QUESTIONS = [
+            { id: 0, text: "你的名字" },
+            { id: 1, text: "你最想干什么" },
+            { id: 2, text: "你和谁玩的最好" },
+            { id: 3, text: "你将来想去哪里发展" },
+            { id: 4, text: "你对哪个老师最有好感" },
+            { id: 5, text: "你最喜欢对朋友说什么" },
+            { id: 6, text: "你哪门学科最拿手" },
+            { id: 7, text: "你对班上哪个异性最有好感（仅是好感不要误解，可以选回答你或者不告诉你或者没有或者名字）" }
+        ];
+        // 新增本地存储：刷新页面不丢答案、不丢做题进度（核心实用升级）
+        let answers = JSON.parse(localStorage.getItem('graduationBookAnswers')) || new Array(QUESTIONS.length).fill("");
+        let currentIndex = parseInt(localStorage.getItem('graduationBookCurrentIndex')) || 0;
+        const appRoot = document.getElementById('app');
+
+        // 保存当前输入答案
+        function saveCurrentAnswer() {
+            const inputElement = document.querySelector(`[data-qid="${currentIndex}"]`);
+            if (inputElement) answers[currentIndex] = inputElement.value.trim();
+            saveToLocalStorage();
+        }
+        // 写入本地缓存
+        function saveToLocalStorage() {
+            localStorage.setItem('graduationBookAnswers', JSON.stringify(answers));
+            localStorage.setItem('graduationBookCurrentIndex', currentIndex.toString());
+        }
+        // 防XSS HTML转义（安全加固）
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        // 渲染输入框（第1题单行input，其余多行textarea，完全继承你原始逻辑）
+        function renderInputByQuestion(qid, currentAnswer) {
+            if (qid === 0) {
+                return `<input type="text" data-qid="${qid}" placeholder="你猜 / 不告诉你 / 没有 / 或者写名字" value="${escapeHtml(currentAnswer)}">`;
+            }
+            return `<textarea data-qid="${qid}" rows="3" placeholder="写下你的想法..." >${escapeHtml(currentAnswer)}</textarea>`;
+        }
+        // 渲染答题页面（原有逻辑完整保留，仅优化交互细节）
+        function renderQuestionPage() {
+            const currentQ = QUESTIONS[currentIndex];
+            const isLast = currentIndex === QUESTIONS.length - 1;
+            let html = `
+                <div class="question-panel">
+                    <div class="hero-title">毕业书</div>
+                    <sub>拾忆青春 · 致少年</sub>
+                    <div class="progress">进度 ${currentIndex+1} / ${QUESTIONS.length}</div>
+                    <div class="question-number">问题 ${currentIndex+1}</div>
+                    <div class="question-text">${escapeHtml(currentQ.text)}</div>
+                    <div class="answer-area">
+                        <label>写下你的回答</label>
+                        ${renderInputByQuestion(currentIndex, answers[currentIndex] || "")}
+                    </div>
+                    <div class="button-group">
+                        <button id="prevBtn" class="secondary" ${currentIndex===0 ? "disabled style
