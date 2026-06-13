@@ -265,4 +265,17 @@
                 if(confirm("确定清空全部回答吗？")){
                     answers = new Array(QUESTIONS.length).fill("");
                     currentIndex = 0;
-                    renderQuestion
+                    renderQuestion            document.getElementById('resetAllBtn')?.addEventListener('click', ()=>{
+                if(confirm("确定清空全部回答吗？")){
+                    answers = new Array(QUESTIONS.length).fill("");
+                    currentIndex = 0;
+                    renderQuestionPage();  // 修正函数名
+                }
+            });
+        }
+
+        // 启动应用
+        renderQuestionPage();
+    </script>
+</body>
+</html>
